@@ -1,0 +1,3201 @@
+<!DOCTYPE html>
+<!--
+  ╔══════════════════════════════════════════════════════════════════╗
+  ║           🍞 BREAD HOUSE — Complete Bakery Website               ║
+  ║   A fully self-contained single-file bakery e-commerce app       ║
+  ║   Built with: HTML5, CSS3, jQuery, localStorage                  ║
+  ║   Features: Auth, Cart, Orders, Admin Panel, Search              ║
+  ╚══════════════════════════════════════════════════════════════════╝
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bread House — Fresh Baked Every Day</title>
+
+  <!-- Google Fonts: Playfair Display (headings) + Open Sans (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Open+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- jQuery from CDN -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <style>
+    /* ====================================================================
+       CSS RESET & ROOT VARIABLES
+       ==================================================================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* Brand Colors */
+      --cream:        #FDF8F0;
+      --beige:        #F5ECD8;
+      --brown:        #8B4513;
+      --brown-dark:   #6B3410;
+      --brown-light:  #A0522D;
+      --gold:         #D4A017;
+      --gold-light:   #E8B82A;
+      --white:        #FFFFFF;
+      --text-dark:    #2C1A0E;
+      --text-mid:     #5C3D22;
+      --text-muted:   #9B7B5A;
+      --border:       #E8D8C0;
+      --danger:       #DC2626;
+      --success:      #16A34A;
+      --warning:      #D97706;
+
+      /* Typography */
+      --font-heading: 'Playfair Display', Georgia, serif;
+      --font-body:    'Open Sans', Arial, sans-serif;
+
+      /* Spacing & Radii */
+      --radius-sm:    6px;
+      --radius-md:    12px;
+      --radius-lg:    20px;
+      --radius-xl:    28px;
+
+      /* Shadows */
+      --shadow-sm:    0 1px 4px rgba(139,69,19,0.08);
+      --shadow-md:    0 4px 16px rgba(139,69,19,0.12);
+      --shadow-lg:    0 8px 32px rgba(139,69,19,0.16);
+      --shadow-xl:    0 16px 48px rgba(139,69,19,0.20);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--cream);
+      color: var(--text-dark);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ====================================================================
+       SCROLLBAR STYLING
+       ==================================================================== */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: var(--beige); }
+    ::-webkit-scrollbar-thumb { background: var(--brown-light); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--brown); }
+
+    /* ====================================================================
+       UTILITY CLASSES
+       ==================================================================== */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .hidden { display: none !important; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 24px;
+      border-radius: var(--radius-md);
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      transition: all 0.25s ease;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--brown);
+      color: var(--white);
+    }
+    .btn-primary:hover {
+      background: var(--brown-dark);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--brown);
+      border: 2px solid var(--brown);
+    }
+    .btn-outline:hover {
+      background: var(--brown);
+      color: var(--white);
+    }
+
+    .btn-gold {
+      background: var(--gold);
+      color: var(--text-dark);
+    }
+    .btn-gold:hover {
+      background: var(--gold-light);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-danger {
+      background: #FEE2E2;
+      color: var(--danger);
+      border: 1px solid #FECACA;
+    }
+    .btn-danger:hover {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-sm {
+      padding: 6px 14px;
+      font-size: 13px;
+      border-radius: var(--radius-sm);
+    }
+
+    .btn-lg {
+      padding: 14px 36px;
+      font-size: 16px;
+      border-radius: var(--radius-lg);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 10px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge-success { background: #DCFCE7; color: var(--success); }
+    .badge-warning { background: #FEF3C7; color: var(--warning); }
+    .badge-danger  { background: #FEE2E2; color: var(--danger); }
+    .badge-info    { background: #DBEAFE; color: #1D4ED8; }
+
+    /* ====================================================================
+       PAGE SYSTEM — only one page visible at a time
+       ==================================================================== */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ====================================================================
+       NAVBAR
+       ==================================================================== */
+    #navbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: var(--white);
+      border-bottom: 2px solid var(--border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      height: 68px;
+    }
+
+    /* Logo */
+    .nav-logo {
+      font-family: var(--font-heading);
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--brown);
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: color 0.2s;
+    }
+    .nav-logo:hover { color: var(--brown-dark); }
+    .nav-logo span { font-size: 28px; }
+
+    /* Nav links */
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      color: var(--text-mid);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 14px;
+      border-radius: var(--radius-sm);
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .nav-links a:hover,
+    .nav-links a.active {
+      background: var(--beige);
+      color: var(--brown);
+    }
+
+    /* Cart badge */
+    .cart-link {
+      position: relative;
+    }
+    #cart-count-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: var(--danger);
+      color: white;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      font-size: 10px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    /* Search bar */
+    .nav-search {
+      display: flex;
+      align-items: center;
+      background: var(--beige);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .nav-search:focus-within {
+      border-color: var(--brown);
+      box-shadow: 0 0 0 3px rgba(139,69,19,0.12);
+    }
+    .nav-search input {
+      background: transparent;
+      border: none;
+      outline: none;
+      padding: 8px 14px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      width: 200px;
+      color: var(--text-dark);
+    }
+    .nav-search button {
+      background: var(--brown);
+      border: none;
+      color: white;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+    .nav-search button:hover { background: var(--brown-dark); }
+
+    /* Profile area */
+    .nav-profile-area {
+      position: relative;
+    }
+
+    #profile-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background: var(--beige);
+      padding: 0;
+    }
+    #profile-btn:hover {
+      border-color: var(--brown);
+      box-shadow: var(--shadow-sm);
+    }
+    #profile-btn img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Profile dropdown */
+    #profile-dropdown {
+      position: absolute;
+      top: calc(100% + 12px);
+      right: 0;
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      min-width: 260px;
+      box-shadow: var(--shadow-lg);
+      z-index: 2000;
+    }
+
+    .profile-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .profile-info img {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--border);
+    }
+
+    .profile-info .user-name {
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text-dark);
+    }
+
+    .profile-info .user-email {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .user-id-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--beige);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      margin-bottom: 10px;
+    }
+
+    .user-id-text {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: monospace;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+
+    .copy-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--brown);
+      transition: background 0.2s;
+    }
+    .copy-btn:hover { background: var(--border); }
+
+    .profile-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .profile-action-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 14px;
+      font-family: var(--font-body);
+      font-weight: 500;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+      color: var(--text-mid);
+      transition: background 0.2s, color 0.2s;
+    }
+    .profile-action-btn:hover { background: var(--beige); color: var(--brown); }
+    .profile-action-btn.logout { color: var(--danger); }
+    .profile-action-btn.logout:hover { background: #FEE2E2; }
+
+    /* ====================================================================
+       AUTH MODAL
+       ==================================================================== */
+    #auth-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(44, 26, 14, 0.55);
+      backdrop-filter: blur(4px);
+      z-index: 9000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    #auth-modal {
+      background: var(--white);
+      border-radius: var(--radius-xl);
+      padding: 40px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: var(--shadow-xl);
+      position: relative;
+    }
+
+    .auth-modal-logo {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .auth-modal-logo .icon { font-size: 40px; margin-bottom: 8px; }
+
+    .auth-modal-logo h2 {
+      font-family: var(--font-heading);
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--brown);
+    }
+
+    .auth-modal-logo p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .auth-tabs {
+      display: flex;
+      background: var(--beige);
+      border-radius: var(--radius-md);
+      padding: 4px;
+      margin-bottom: 28px;
+    }
+
+    .auth-tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      border: none;
+      background: none;
+      font-family: var(--font-body);
+      transition: all 0.25s;
+    }
+
+    .auth-tab.active {
+      background: var(--white);
+      color: var(--brown);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 6px;
+      color: var(--text-mid);
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-family: var(--font-body);
+      color: var(--text-dark);
+      background: var(--cream);
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+
+    .form-group input:focus {
+      border-color: var(--brown);
+      box-shadow: 0 0 0 3px rgba(139,69,19,0.1);
+      background: var(--white);
+    }
+
+    .form-error {
+      font-size: 12px;
+      color: var(--danger);
+      margin-top: 4px;
+    }
+
+    .auth-submit-btn {
+      width: 100%;
+      padding: 13px;
+      background: var(--brown);
+      color: white;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 15px;
+      font-weight: 700;
+      font-family: var(--font-body);
+      cursor: pointer;
+      transition: all 0.25s;
+      margin-top: 6px;
+    }
+
+    .auth-submit-btn:hover {
+      background: var(--brown-dark);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .auth-close-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: var(--beige);
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 16px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .auth-close-btn:hover {
+      background: var(--border);
+      color: var(--text-dark);
+    }
+
+    /* ====================================================================
+       HOME PAGE
+       ==================================================================== */
+
+    /* Hero */
+    .hero {
+      background: linear-gradient(135deg, #5C2D0A 0%, #8B4513 40%, #D4A017 100%);
+      color: white;
+      padding: 100px 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url('https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1400') center/cover no-repeat;
+      opacity: 0.18;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: #FFE8C0;
+      padding: 6px 18px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      font-family: var(--font-heading);
+      font-size: clamp(36px, 6vw, 64px);
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 20px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .hero p {
+      font-size: clamp(15px, 2vw, 18px);
+      opacity: 0.9;
+      margin-bottom: 36px;
+      line-height: 1.7;
+    }
+
+    .hero-btns {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .hero-btn-primary {
+      background: var(--white);
+      color: var(--brown);
+      padding: 15px 36px;
+      border-radius: var(--radius-lg);
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      font-family: var(--font-body);
+      transition: all 0.25s;
+    }
+    .hero-btn-primary:hover {
+      background: var(--cream);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+
+    .hero-btn-outline {
+      background: transparent;
+      color: var(--white);
+      padding: 15px 36px;
+      border-radius: var(--radius-lg);
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      border: 2px solid rgba(255,255,255,0.6);
+      font-family: var(--font-body);
+      transition: all 0.25s;
+    }
+    .hero-btn-outline:hover {
+      border-color: white;
+      background: rgba(255,255,255,0.12);
+    }
+
+    /* Stats bar */
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      margin-top: 56px;
+      padding-top: 40px;
+      border-top: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .hero-stat {
+      text-align: center;
+    }
+
+    .hero-stat .number {
+      font-family: var(--font-heading);
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--gold-light);
+    }
+
+    .hero-stat .label {
+      font-size: 12px;
+      opacity: 0.8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Section headings */
+    .section-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .section-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--beige);
+      color: var(--brown);
+      padding: 5px 14px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-family: var(--font-heading);
+      font-size: clamp(26px, 4vw, 38px);
+      font-weight: 700;
+      color: var(--brown);
+      margin-bottom: 12px;
+    }
+
+    .section-subtitle {
+      font-size: 15px;
+      color: var(--text-muted);
+      max-width: 520px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* Category cards section */
+    #categories-section {
+      padding: 72px 0;
+      background: var(--beige);
+    }
+
+    .categories-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 20px;
+    }
+
+    .category-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .category-card:hover {
+      border-color: var(--brown);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .category-icon {
+      font-size: 44px;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .category-name {
+      font-family: var(--font-heading);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 4px;
+    }
+
+    .category-count {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Featured products */
+    #featured-section {
+      padding: 72px 0;
+    }
+
+    /* Products grid */
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 24px;
+    }
+
+    /* Product Card */
+    .product-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1.5px solid var(--border);
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .product-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--brown);
+    }
+
+    .product-img-wrapper {
+      position: relative;
+      height: 200px;
+      overflow: hidden;
+      background: var(--beige);
+    }
+
+    .product-img-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    .product-card:hover .product-img-wrapper img {
+      transform: scale(1.06);
+    }
+
+    .product-discount-tag {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: var(--danger);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    .product-body {
+      padding: 18px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .product-category-tag {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--brown);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+
+    .product-name {
+      font-family: var(--font-heading);
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+
+    .product-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      line-height: 1.5;
+      flex: 1;
+    }
+
+    .product-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .product-price {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .price-current {
+      font-weight: 700;
+      font-size: 17px;
+      color: var(--brown);
+    }
+
+    .price-original {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-decoration: line-through;
+    }
+
+    .add-to-cart-btn {
+      background: var(--brown);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 9px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font-body);
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .add-to-cart-btn:hover {
+      background: var(--brown-dark);
+      transform: scale(1.04);
+    }
+
+    .add-to-cart-btn.added {
+      background: var(--success);
+    }
+
+    /* ====================================================================
+       PRODUCT LISTING PAGE
+       ==================================================================== */
+    .page-header {
+      background: var(--white);
+      border-bottom: 1.5px solid var(--border);
+      padding: 32px 0 24px;
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      margin-bottom: 12px;
+      color: var(--text-muted);
+    }
+
+    .breadcrumb a {
+      color: var(--brown);
+      text-decoration: none;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .breadcrumb .sep { color: var(--border); }
+
+    .page-header h1 {
+      font-family: var(--font-heading);
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--brown);
+    }
+
+    .page-header p {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .listing-content {
+      padding: 40px 0 72px;
+    }
+
+    /* ====================================================================
+       CART PAGE
+       ==================================================================== */
+    .cart-layout {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 28px;
+      padding: 40px 0 72px;
+      align-items: start;
+    }
+
+    .cart-items-panel {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      border: 1.5px solid var(--border);
+      overflow: hidden;
+    }
+
+    .cart-panel-header {
+      padding: 20px 24px;
+      border-bottom: 1.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .cart-panel-header h2 {
+      font-family: var(--font-heading);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    .cart-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .cart-item:last-child { border-bottom: none; }
+
+    .cart-item-img {
+      width: 72px;
+      height: 72px;
+      border-radius: var(--radius-sm);
+      object-fit: cover;
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .cart-item-info { flex: 1; }
+
+    .cart-item-name {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text-dark);
+      margin-bottom: 2px;
+    }
+
+    .cart-item-category {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: capitalize;
+    }
+
+    .cart-item-price {
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--brown);
+    }
+
+    .qty-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .qty-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border);
+      background: var(--white);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      transition: all 0.15s;
+      color: var(--text-dark);
+    }
+    .qty-btn:hover {
+      border-color: var(--brown);
+      background: var(--beige);
+      color: var(--brown);
+    }
+
+    .qty-num {
+      min-width: 28px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .remove-item-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 18px;
+      padding: 6px;
+      border-radius: var(--radius-sm);
+      transition: all 0.2s;
+    }
+    .remove-item-btn:hover { background: #FEE2E2; color: var(--danger); }
+
+    /* Cart Summary */
+    .cart-summary {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      border: 1.5px solid var(--border);
+      padding: 24px;
+      position: sticky;
+      top: 90px;
+    }
+
+    .cart-summary h2 {
+      font-family: var(--font-heading);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1.5px solid var(--border);
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 14px;
+      color: var(--text-mid);
+    }
+
+    .summary-row.total {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-dark);
+      padding-top: 14px;
+      border-top: 1.5px solid var(--border);
+      margin-top: 14px;
+    }
+
+    .summary-row.total span:last-child { color: var(--brown); }
+
+    .place-order-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--brown) 0%, var(--brown-light) 100%);
+      color: white;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 15px;
+      font-weight: 700;
+      font-family: var(--font-body);
+      cursor: pointer;
+      margin-top: 18px;
+      transition: all 0.25s;
+    }
+
+    .place-order-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .cod-note {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      justify-content: center;
+    }
+
+    /* Empty cart */
+    .empty-state {
+      text-align: center;
+      padding: 64px 20px;
+    }
+
+    .empty-state .empty-icon { font-size: 64px; margin-bottom: 16px; }
+
+    .empty-state h3 {
+      font-family: var(--font-heading);
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+    }
+
+    .empty-state p {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    /* ====================================================================
+       ORDERS PAGE
+       ==================================================================== */
+    .orders-list { padding: 40px 0 72px; }
+
+    .order-card {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .order-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 24px;
+      background: var(--beige);
+      border-bottom: 1.5px solid var(--border);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .order-id {
+      font-family: monospace;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text-dark);
+    }
+
+    .order-date {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .order-items-list {
+      padding: 18px 24px;
+    }
+
+    .order-item-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      color: var(--text-mid);
+      padding: 5px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .order-item-row:last-child { border-bottom: none; }
+
+    .order-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 24px;
+      border-top: 1.5px solid var(--border);
+      background: var(--cream);
+    }
+
+    .order-total {
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--brown);
+    }
+
+    /* ====================================================================
+       ADMIN PAGE
+       ==================================================================== */
+    .admin-login-card {
+      max-width: 420px;
+      margin: 80px auto;
+      background: var(--white);
+      border-radius: var(--radius-xl);
+      padding: 44px;
+      box-shadow: var(--shadow-xl);
+      border: 1.5px solid var(--border);
+      text-align: center;
+    }
+
+    .admin-login-card .lock-icon {
+      font-size: 52px;
+      margin-bottom: 16px;
+    }
+
+    .admin-login-card h2 {
+      font-family: var(--font-heading);
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--brown);
+      margin-bottom: 8px;
+    }
+
+    .admin-login-card p {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+    }
+
+    .admin-dashboard { padding: 32px 0 72px; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 36px;
+    }
+
+    .stat-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      border: 1.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .stat-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .stat-icon.orders  { background: #DBEAFE; }
+    .stat-icon.revenue { background: #DCFCE7; }
+    .stat-icon.pending { background: #FEF3C7; }
+
+    .stat-value {
+      font-family: var(--font-heading);
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text-dark);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Admin table */
+    .admin-table-section {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      border: 1.5px solid var(--border);
+      overflow: hidden;
+    }
+
+    .admin-table-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1.5px solid var(--border);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .admin-table-header h2 {
+      font-family: var(--font-heading);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    .filter-select {
+      padding: 8px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-family: var(--font-body);
+      background: var(--cream);
+      color: var(--text-dark);
+      cursor: pointer;
+      outline: none;
+    }
+
+    .filter-select:focus { border-color: var(--brown); }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .data-table thead {
+      background: var(--beige);
+    }
+
+    .data-table th {
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .data-table td {
+      padding: 14px 16px;
+      font-size: 13px;
+      color: var(--text-mid);
+      border-top: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    .data-table tbody tr:hover { background: var(--cream); }
+
+    /* ====================================================================
+       SEARCH PAGE
+       ==================================================================== */
+    .search-page-content { padding: 40px 0 72px; }
+
+    .search-results-heading {
+      font-family: var(--font-heading);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 28px;
+    }
+
+    .search-results-heading span { color: var(--brown); }
+
+    /* ====================================================================
+       TOAST NOTIFICATION
+       ==================================================================== */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 10px;
+    }
+
+    .toast {
+      background: var(--text-dark);
+      color: white;
+      padding: 13px 20px;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      max-width: 320px;
+      animation: slideInRight 0.3s ease;
+    }
+
+    .toast.success { background: var(--success); }
+    .toast.warning { background: var(--warning); }
+    .toast.error   { background: var(--danger); }
+
+    @keyframes slideInRight {
+      from { transform: translateX(120%); opacity: 0; }
+      to   { transform: translateX(0);   opacity: 1; }
+    }
+
+    @keyframes fadeOut {
+      from { opacity: 1; transform: translateX(0); }
+      to   { opacity: 0; transform: translateX(40px); }
+    }
+
+    /* ====================================================================
+       FOOTER
+       ==================================================================== */
+    #footer {
+      background: var(--text-dark);
+      color: rgba(255,255,255,0.7);
+      padding: 48px 0 24px;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+
+    .footer-brand .logo {
+      font-family: var(--font-heading);
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--gold-light);
+      margin-bottom: 12px;
+    }
+
+    .footer-brand p {
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .footer-col h4 {
+      font-weight: 700;
+      font-size: 14px;
+      color: white;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .footer-col ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .footer-col ul li a {
+      color: rgba(255,255,255,0.6);
+      text-decoration: none;
+      font-size: 13px;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .footer-col ul li a:hover { color: var(--gold-light); }
+
+    .footer-bottom {
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 12px;
+    }
+
+    .footer-bottom a {
+      color: var(--gold-light);
+      text-decoration: none;
+    }
+
+    /* ====================================================================
+       ORDER SUCCESS MODAL
+       ==================================================================== */
+    #order-success-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(44,26,14,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 8000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    #order-success-modal {
+      background: var(--white);
+      border-radius: var(--radius-xl);
+      padding: 48px 40px;
+      max-width: 440px;
+      width: 100%;
+      text-align: center;
+      box-shadow: var(--shadow-xl);
+    }
+
+    .success-icon {
+      font-size: 60px;
+      margin-bottom: 16px;
+    }
+
+    #order-success-modal h2 {
+      font-family: var(--font-heading);
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--success);
+      margin-bottom: 8px;
+    }
+
+    #order-success-modal p {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+
+    /* ====================================================================
+       RESPONSIVE STYLES
+       ==================================================================== */
+    @media (max-width: 1024px) {
+      .categories-grid { grid-template-columns: repeat(3, 1fr); }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 28px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+      .nav-search { display: none; }
+      .nav-links { gap: 0; }
+      .nav-links a { padding: 8px 8px; font-size: 13px; }
+      .hero { padding: 64px 0; }
+      .hero-stats { gap: 24px; flex-wrap: wrap; }
+      .cart-layout { grid-template-columns: 1fr; }
+      .cart-summary { position: static; }
+      .categories-grid { grid-template-columns: repeat(2, 1fr); }
+      .stats-grid { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr; gap: 24px; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+      .data-table th, .data-table td { padding: 10px 10px; }
+    }
+
+    @media (max-width: 480px) {
+      .nav-logo { font-size: 18px; }
+      .nav-logo span { font-size: 22px; }
+      .categories-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .products-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- =====================================================================
+     TOAST NOTIFICATION CONTAINER
+     ===================================================================== -->
+<div id="toast-container"></div>
+
+<!-- =====================================================================
+     NAVBAR
+     ===================================================================== -->
+<nav id="navbar">
+  <div class="container nav-inner">
+    <!-- Brand Logo -->
+    <a class="nav-logo" onclick="showPage('home')">
+      <span>🍞</span> Bread House
+    </a>
+
+    <!-- Navigation Links -->
+    <ul class="nav-links">
+      <li><a onclick="showPage('home')" data-page="home">🏠 Home</a></li>
+      <li><a onclick="showPage('products-cakes')" data-page="products">🎂 Products</a></li>
+      <li>
+        <a onclick="showPage('cart')" data-page="cart" class="cart-link">
+          🛒 Cart
+          <span id="cart-count-badge" class="hidden">0</span>
+        </a>
+      </li>
+      <li><a onclick="showPage('orders')" data-page="orders">📦 Orders</a></li>
+      <li><a onclick="showPage('admin')" data-page="admin">⚙️ Admin</a></li>
+    </ul>
+
+    <!-- Search Bar -->
+    <div class="nav-search">
+      <input
+        type="text"
+        id="search-input"
+        placeholder="Search breads, cakes..."
+        autocomplete="off"
+        onkeydown="if(event.key==='Enter') performSearch()"
+      />
+      <button onclick="performSearch()" aria-label="Search">🔍</button>
+    </div>
+
+    <!-- Profile Button -->
+    <div class="nav-profile-area">
+      <button id="profile-btn" onclick="toggleProfileDropdown()" aria-label="User profile">
+        <img id="profile-img" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Profile" />
+      </button>
+
+      <!-- Profile Dropdown (only visible when logged in) -->
+      <div id="profile-dropdown" class="hidden">
+        <div class="profile-info">
+          <img id="dropdown-avatar" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar" />
+          <div>
+            <div class="user-name" id="dropdown-name">Guest User</div>
+            <div class="user-email" id="dropdown-email">Not logged in</div>
+          </div>
+        </div>
+        <div class="user-id-row">
+          <span class="user-id-text" id="user-id-display">—</span>
+          <button class="copy-btn" onclick="copyUserId()" title="Copy User ID">📋</button>
+        </div>
+        <div class="profile-actions">
+          <label class="profile-action-btn" style="cursor:pointer;">
+            📷 Change Photo
+            <input type="file" id="photo-upload-input" accept="image/*" style="display:none" onchange="handlePhotoUpload(event)" />
+          </label>
+          <button class="profile-action-btn logout" onclick="logout()">🚪 Logout</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- =====================================================================
+     AUTH MODAL (Login / Sign Up)
+     ===================================================================== -->
+<div id="auth-modal-overlay">
+  <div id="auth-modal">
+    <button class="auth-close-btn" onclick="closeAuthModal()">✕</button>
+
+    <div class="auth-modal-logo">
+      <div class="icon">🍞</div>
+      <h2>Welcome to Bread House</h2>
+      <p>Sign in to enjoy our freshly baked goods</p>
+    </div>
+
+    <!-- Tab Switcher -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Sign In</button>
+      <button class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')">Create Account</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <form id="login-form" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label for="login-email">Email Address</label>
+        <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email" autocapitalize="none" />
+        <div class="form-error" id="login-email-error"></div>
+      </div>
+      <div class="form-group">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" placeholder="Enter your password" autocomplete="current-password" />
+        <div class="form-error" id="login-password-error"></div>
+      </div>
+      <div class="form-error" id="login-general-error"></div>
+      <button type="submit" class="auth-submit-btn">Sign In →</button>
+    </form>
+
+    <!-- SIGNUP FORM -->
+    <form id="signup-form" class="hidden" onsubmit="handleSignup(event)">
+      <div class="form-group">
+        <label for="signup-name">Full Name</label>
+        <input type="text" id="signup-name" placeholder="Ahmad Khan" autocomplete="name" />
+        <div class="form-error" id="signup-name-error"></div>
+      </div>
+      <div class="form-group">
+        <label for="signup-email">Email Address</label>
+        <input type="email" id="signup-email" placeholder="you@example.com" autocomplete="email" autocapitalize="none" />
+        <div class="form-error" id="signup-email-error"></div>
+      </div>
+      <div class="form-group">
+        <label for="signup-password">Password</label>
+        <input type="password" id="signup-password" placeholder="At least 6 characters" autocomplete="new-password" />
+        <div class="form-error" id="signup-password-error"></div>
+      </div>
+      <div class="form-group">
+        <label for="signup-confirm">Confirm Password</label>
+        <input type="password" id="signup-confirm" placeholder="Repeat your password" autocomplete="new-password" />
+        <div class="form-error" id="signup-confirm-error"></div>
+      </div>
+      <div class="form-error" id="signup-general-error"></div>
+      <button type="submit" class="auth-submit-btn">Create Account →</button>
+    </form>
+  </div>
+</div>
+
+<!-- =====================================================================
+     ORDER SUCCESS MODAL
+     ===================================================================== -->
+<div id="order-success-overlay" class="hidden">
+  <div id="order-success-modal">
+    <div class="success-icon">🎉</div>
+    <h2>Order Placed!</h2>
+    <p>
+      Your order has been confirmed and will be delivered to your door.<br/>
+      Payment: <strong>Cash on Delivery</strong>
+    </p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-primary btn-lg" onclick="closeOrderSuccess(); showPage('orders')">View My Orders</button>
+      <button class="btn btn-outline btn-lg" onclick="closeOrderSuccess(); showPage('home')">Continue Shopping</button>
+    </div>
+  </div>
+</div>
+
+<!-- =====================================================================
+     ██   HOME PAGE
+     ===================================================================== -->
+<div id="page-home" class="page active">
+
+  <!-- Hero Banner -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <div class="hero-eyebrow">✨ Fresh Baked Every Morning</div>
+        <h1>Welcome to<br/>Bread House</h1>
+        <p>Discover the finest artisan breads, pastries, and cakes — baked fresh daily with love and the finest ingredients.</p>
+        <div class="hero-btns">
+          <button class="hero-btn-primary" onclick="showPage('products-cakes')">🛍️ Shop Now</button>
+          <button class="hero-btn-outline" onclick="scrollToCategories()">🎂 Browse Categories</button>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat"><div class="number">25+</div><div class="label">Fresh Products</div></div>
+          <div class="hero-stat"><div class="number">5</div><div class="label">Categories</div></div>
+          <div class="hero-stat"><div class="number">1000+</div><div class="label">Happy Customers</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Category Grid -->
+  <section id="categories-section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">🍰 Categories</div>
+        <h2 class="section-title">What Are You Craving?</h2>
+        <p class="section-subtitle">Browse our delicious range of freshly baked categories, made with premium ingredients every day.</p>
+      </div>
+      <div class="categories-grid">
+        <div class="category-card" onclick="showPage('products-cakes')">
+          <span class="category-icon">🎂</span>
+          <div class="category-name">Cakes</div>
+          <div class="category-count">5 items</div>
+        </div>
+        <div class="category-card" onclick="showPage('products-pastries')">
+          <span class="category-icon">🥐</span>
+          <div class="category-name">Pastries</div>
+          <div class="category-count">5 items</div>
+        </div>
+        <div class="category-card" onclick="showPage('products-cookies')">
+          <span class="category-icon">🍪</span>
+          <div class="category-name">Cookies</div>
+          <div class="category-count">5 items</div>
+        </div>
+        <div class="category-card" onclick="showPage('products-croissants')">
+          <span class="category-icon">🥐</span>
+          <div class="category-name">Croissants</div>
+          <div class="category-count">5 items</div>
+        </div>
+        <div class="category-card" onclick="showPage('products-cupcakes')">
+          <span class="category-icon">🧁</span>
+          <div class="category-name">Cupcakes</div>
+          <div class="category-count">5 items</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Products -->
+  <section id="featured-section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">⭐ Featured</div>
+        <h2 class="section-title">Today's Fresh Picks</h2>
+        <p class="section-subtitle">Hand-picked selection of our most popular items, fresh out of the oven.</p>
+      </div>
+      <!-- Featured products injected by JS -->
+      <div class="products-grid" id="featured-products-grid"></div>
+      <div style="text-align:center; margin-top:40px;">
+        <button class="btn btn-outline btn-lg" onclick="showPage('products-cakes')">View All Products →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why Choose Us -->
+  <section style="padding:72px 0; background:var(--beige);">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">💛 Why Us</div>
+        <h2 class="section-title">Baked With Love</h2>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:24px;">
+        <div style="background:var(--white);border-radius:var(--radius-lg);padding:28px;text-align:center;box-shadow:var(--shadow-sm);">
+          <div style="font-size:36px;margin-bottom:12px;">🌾</div>
+          <h3 style="font-family:var(--font-heading);font-weight:700;margin-bottom:8px;color:var(--text-dark);">Premium Ingredients</h3>
+          <p style="font-size:13px;color:var(--text-muted);line-height:1.6;">We source only the finest flour, butter, and local produce for every recipe.</p>
+        </div>
+        <div style="background:var(--white);border-radius:var(--radius-lg);padding:28px;text-align:center;box-shadow:var(--shadow-sm);">
+          <div style="font-size:36px;margin-bottom:12px;">🕐</div>
+          <h3 style="font-family:var(--font-heading);font-weight:700;margin-bottom:8px;color:var(--text-dark);">Baked Fresh Daily</h3>
+          <p style="font-size:13px;color:var(--text-muted);line-height:1.6;">Everything is baked fresh each morning — no preservatives, ever.</p>
+        </div>
+        <div style="background:var(--white);border-radius:var(--radius-lg);padding:28px;text-align:center;box-shadow:var(--shadow-sm);">
+          <div style="font-size:36px;margin-bottom:12px;">🚚</div>
+          <h3 style="font-family:var(--font-heading);font-weight:700;margin-bottom:8px;color:var(--text-dark);">Fast Delivery</h3>
+          <p style="font-size:13px;color:var(--text-muted);line-height:1.6;">Same-day delivery across the city, keeping everything fresh at your door.</p>
+        </div>
+        <div style="background:var(--white);border-radius:var(--radius-lg);padding:28px;text-align:center;box-shadow:var(--shadow-sm);">
+          <div style="font-size:36px;margin-bottom:12px;">💳</div>
+          <h3 style="font-family:var(--font-heading);font-weight:700;margin-bottom:8px;color:var(--text-dark);">Cash on Delivery</h3>
+          <p style="font-size:13px;color:var(--text-muted);line-height:1.6;">Pay when your order arrives — simple, safe, and convenient.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Explore Pastries Banner -->
+  <section style="padding:72px 0; background:linear-gradient(135deg, #D4A017 0%, #8B4513 100%); position:relative; overflow:hidden;">
+    <div style="position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=1200') center/cover no-repeat;opacity:0.15;"></div>
+    <div class="container" style="position:relative;z-index:2;text-align:center;">
+      <h2 style="font-family:var(--font-heading);font-size:clamp(28px,5vw,46px);font-weight:800;color:white;margin-bottom:16px;text-shadow:0 2px 8px rgba(0,0,0,0.25);">Freshly Baked Pastries</h2>
+      <p style="color:rgba(255,255,255,0.85);font-size:17px;margin-bottom:32px;max-width:500px;margin-left:auto;margin-right:auto;">Layers of flaky, buttery perfection — baked to golden every morning.</p>
+      <!-- NOTE: Text color is black as requested -->
+      <button class="btn btn-lg" style="background:white;color:#000000;font-weight:700;font-size:16px;" onclick="showPage('products-pastries')">🥐 Explore Pastries</button>
+    </div>
+  </section>
+
+</div><!-- end page-home -->
+
+
+<!-- =====================================================================
+     ██   PRODUCT LISTING PAGE
+     ===================================================================== -->
+<div id="page-products" class="page">
+  <div class="page-header">
+    <div class="container">
+      <div class="breadcrumb">
+        <a onclick="showPage('home')">Home</a>
+        <span class="sep">›</span>
+        <span id="product-breadcrumb-label">Products</span>
+      </div>
+      <h1 id="products-page-title">Products</h1>
+      <p id="products-page-subtitle">Freshly baked and ready to enjoy</p>
+    </div>
+  </div>
+  <div class="listing-content">
+    <div class="container">
+      <div class="products-grid" id="products-listing-grid"></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- =====================================================================
+     ██   CART PAGE
+     ===================================================================== -->
+<div id="page-cart" class="page">
+  <div class="page-header">
+    <div class="container">
+      <div class="breadcrumb">
+        <a onclick="showPage('home')">Home</a>
+        <span class="sep">›</span>
+        <span>Shopping Cart</span>
+      </div>
+      <h1>🛒 Shopping Cart</h1>
+    </div>
+  </div>
+
+  <!-- Empty cart state -->
+  <div id="empty-cart" class="container hidden">
+    <div class="empty-state" style="padding:80px 20px;">
+      <div class="empty-icon">🛒</div>
+      <h3>Your cart is empty</h3>
+      <p>Looks like you haven't added any delicious items yet!</p>
+      <button class="btn btn-primary btn-lg" onclick="showPage('products-cakes')">🍰 Start Shopping</button>
+    </div>
+  </div>
+
+  <!-- Cart with items -->
+  <div id="cart-with-items" class="container hidden">
+    <div class="cart-layout">
+      <!-- Cart Items Panel -->
+      <div class="cart-items-panel">
+        <div class="cart-panel-header">
+          <h2>Order Items</h2>
+          <button class="btn btn-danger btn-sm" onclick="clearCart()">🗑️ Clear Cart</button>
+        </div>
+        <div id="cart-items-list"><!-- items rendered here --></div>
+      </div>
+
+      <!-- Order Summary -->
+      <aside class="cart-summary">
+        <h2>Order Summary</h2>
+        <div class="summary-row"><span>Subtotal</span><span id="cart-subtotal">PKR 0</span></div>
+        <div class="summary-row"><span>Delivery Fee</span><span>PKR 100</span></div>
+        <div class="summary-row total">
+          <span>Total</span>
+          <span id="cart-total">PKR 100</span>
+        </div>
+        <button class="place-order-btn" onclick="placeOrder()">
+          📦 Place Order (Cash on Delivery)
+        </button>
+        <div class="cod-note">🔒 Secure · Pay on delivery · No card needed</div>
+      </aside>
+    </div>
+  </div>
+</div>
+
+
+<!-- =====================================================================
+     ██   ORDERS PAGE
+     ===================================================================== -->
+<div id="page-orders" class="page">
+  <div class="page-header">
+    <div class="container">
+      <div class="breadcrumb">
+        <a onclick="showPage('home')">Home</a>
+        <span class="sep">›</span>
+        <span>My Orders</span>
+      </div>
+      <h1>📦 My Orders</h1>
+      <p>Track all your past orders from Bread House</p>
+    </div>
+  </div>
+
+  <div class="orders-list container">
+    <!-- Orders rendered here by JS -->
+    <div id="orders-container"></div>
+  </div>
+</div>
+
+
+<!-- =====================================================================
+     ██   ADMIN PAGE
+     ===================================================================== -->
+<div id="page-admin" class="page">
+
+  <!-- Admin Login Card (shown until authenticated) -->
+  <div id="admin-login-section" class="container">
+    <div class="admin-login-card">
+      <div class="lock-icon">🔐</div>
+      <h2>Admin Access</h2>
+      <p>Enter the admin password to access the dashboard</p>
+      <div class="form-group">
+        <label for="admin-password-input">Admin Password</label>
+        <input
+          type="password"
+          id="admin-password-input"
+          placeholder="Enter admin password"
+          onkeydown="if(event.key==='Enter') adminLogin()"
+        />
+        <div class="form-error" id="admin-pw-error"></div>
+      </div>
+      <button class="auth-submit-btn" onclick="adminLogin()">🔓 Access Dashboard</button>
+    </div>
+  </div>
+
+  <!-- Admin Dashboard (shown after authentication) -->
+  <div id="admin-dashboard-section" class="hidden">
+    <div class="page-header">
+      <div class="container" style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <h1>⚙️ Admin Dashboard</h1>
+          <p>Manage orders, view revenue, and monitor store performance</p>
+        </div>
+        <button class="btn btn-outline" onclick="adminLogout()">🚪 Logout Admin</button>
+      </div>
+    </div>
+
+    <div class="admin-dashboard container">
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon orders">📋</div>
+          <div>
+            <div class="stat-value" id="stat-total-orders">0</div>
+            <div class="stat-label">Total Orders</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon revenue">💰</div>
+          <div>
+            <div class="stat-value" id="stat-total-revenue">PKR 0</div>
+            <div class="stat-label">Total Revenue</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon pending">⏳</div>
+          <div>
+            <div class="stat-value" id="stat-pending-orders">0</div>
+            <div class="stat-label">Pending Orders</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Orders Table -->
+      <div class="admin-table-section">
+        <div class="admin-table-header">
+          <h2>📋 All Orders</h2>
+          <select class="filter-select" id="status-filter" onchange="renderAdminOrders()">
+            <option value="all">All Statuses</option>
+            <option value="Confirmed">Confirmed</option>
+            <option value="Pending">Pending</option>
+          </select>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="admin-orders-tbody"><!-- rows injected by JS --></tbody>
+          </table>
+        </div>
+        <div id="admin-no-orders" class="empty-state hidden">
+          <div class="empty-icon">📭</div>
+          <h3>No orders found</h3>
+          <p>Orders will appear here once customers place them.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end page-admin -->
+
+
+<!-- =====================================================================
+     ██   SEARCH RESULTS PAGE
+     ===================================================================== -->
+<div id="page-search" class="page">
+  <div class="page-header">
+    <div class="container">
+      <div class="breadcrumb">
+        <a onclick="showPage('home')">Home</a>
+        <span class="sep">›</span>
+        <span>Search Results</span>
+      </div>
+      <h1>🔍 Search Results</h1>
+    </div>
+  </div>
+  <div class="search-page-content container">
+    <div class="search-results-heading" id="search-heading">Results for "<span id="search-query-display"></span>"</div>
+    <div class="products-grid" id="search-results-grid"></div>
+    <div id="search-no-results" class="empty-state hidden">
+      <div class="empty-icon">🔍</div>
+      <h3>No products found</h3>
+      <p>Try searching for "cake", "cookie", or "croissant".</p>
+      <button class="btn btn-primary" onclick="showPage('products-cakes')">Browse All Products</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- =====================================================================
+     FOOTER
+     ===================================================================== -->
+<footer id="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="logo">🍞 Bread House</div>
+        <p>Pakistan's favourite artisan bakery — delivering freshly baked goods with love since 2020. Every bite tells a story.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Shop</h4>
+        <ul>
+          <li><a onclick="showPage('products-cakes')">Cakes</a></li>
+          <li><a onclick="showPage('products-pastries')">Pastries</a></li>
+          <li><a onclick="showPage('products-cookies')">Cookies</a></li>
+          <li><a onclick="showPage('products-croissants')">Croissants</a></li>
+          <li><a onclick="showPage('products-cupcakes')">Cupcakes</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Account</h4>
+        <ul>
+          <li><a onclick="showPage('cart')">My Cart</a></li>
+          <li><a onclick="showPage('orders')">My Orders</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <ul>
+          <li><a>📧 hello@breadhouse.pk</a></li>
+          <li><a>📞 0300-1234567</a></li>
+          <li><a>📍 Karachi, Pakistan</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span id="footer-year"></span> Bread House. All rights reserved.</span>
+      <span>Built with ❤️ using <a href="https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral" target="_blank">caffeine.ai</a></span>
+    </div>
+  </div>
+</footer>
+
+
+<!-- =====================================================================
+     JAVASCRIPT — All App Logic
+     ===================================================================== -->
+<script>
+// ============================================================
+// SECTION 1: PRODUCT DATA
+// All 25 products organised by category
+// ============================================================
+
+const PRODUCTS = [
+  // ── CAKES ──────────────────────────────────────────────────
+  {
+    id: 1, category: 'cakes', categoryLabel: 'Cakes',
+    name: 'Chocolate Truffle Cake',
+    desc: 'Rich dark chocolate layers with ganache filling',
+    price: 2500, originalPrice: 3000,
+    img: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400'
+  },
+  {
+    id: 2, category: 'cakes', categoryLabel: 'Cakes',
+    name: 'Red Velvet Cake',
+    desc: 'Classic red velvet with cream cheese frosting',
+    price: 2200, originalPrice: 2800,
+    img: 'https://images.unsplash.com/photo-1586788680434-30d324b2d46f?w=400'
+  },
+  {
+    id: 3, category: 'cakes', categoryLabel: 'Cakes',
+    name: 'Vanilla Bean Cake',
+    desc: 'Light vanilla sponge with fresh cream',
+    price: 1800, originalPrice: 2200,
+    img: 'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=400'
+  },
+  {
+    id: 4, category: 'cakes', categoryLabel: 'Cakes',
+    name: 'Lemon Drizzle Cake',
+    desc: 'Zesty lemon cake with sugar glaze',
+    price: 1600, originalPrice: 2000,
+    img: 'https://images.unsplash.com/photo-1519869325930-281384150729?w=400'
+  },
+  {
+    id: 5, category: 'cakes', categoryLabel: 'Cakes',
+    name: 'Black Forest Cake',
+    desc: 'Cherry and cream classic',
+    price: 2800, originalPrice: 3500,
+    img: 'https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?w=400'
+  },
+
+  // ── PASTRIES ───────────────────────────────────────────────
+  {
+    id: 6, category: 'pastries', categoryLabel: 'Pastries',
+    name: 'Butter Croissant Pastry',
+    desc: 'Flaky buttery layers',
+    price: 350, originalPrice: 450,
+    img: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400'
+  },
+  {
+    id: 7, category: 'pastries', categoryLabel: 'Pastries',
+    name: 'Danish Pastry',
+    desc: 'Fruit-filled Danish with icing',
+    price: 400, originalPrice: 500,
+    img: 'https://images.unsplash.com/photo-1517433367423-c7e5b0f35086?w=400'
+  },
+  {
+    id: 8, category: 'pastries', categoryLabel: 'Pastries',
+    name: 'Eclair',
+    desc: 'Choux pastry with chocolate cream',
+    price: 300, originalPrice: 380,
+    img: 'https://images.unsplash.com/photo-1509365465985-25d11c17e812?w=400'
+  },
+  {
+    id: 9, category: 'pastries', categoryLabel: 'Pastries',
+    name: 'Palmier',
+    desc: 'Caramelized puff pastry',
+    price: 250, originalPrice: 320,
+    img: 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=400'
+  },
+  {
+    id: 10, category: 'pastries', categoryLabel: 'Pastries',
+    name: 'Mille-Feuille',
+    desc: 'Napoleon pastry with custard',
+    price: 550, originalPrice: 700,
+    img: 'https://images.unsplash.com/photo-1571115177098-24ec42ed204d?w=400'
+  },
+
+  // ── COOKIES ───────────────────────────────────────────────
+  {
+    id: 11, category: 'cookies', categoryLabel: 'Cookies',
+    name: 'Chocolate Chip Cookies',
+    desc: 'Classic chewy cookies',
+    price: 450, originalPrice: 550,
+    img: 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=400'
+  },
+  {
+    id: 12, category: 'cookies', categoryLabel: 'Cookies',
+    name: 'Oatmeal Raisin',
+    desc: 'Hearty oatmeal cookies',
+    price: 400, originalPrice: 500,
+    img: 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=400'
+  },
+  {
+    id: 13, category: 'cookies', categoryLabel: 'Cookies',
+    name: 'Shortbread',
+    desc: 'Buttery Scottish shortbread',
+    price: 380, originalPrice: 480,
+    img: 'https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=400'
+  },
+  {
+    id: 14, category: 'cookies', categoryLabel: 'Cookies',
+    name: 'Macarons',
+    desc: 'French almond macarons 6-pack',
+    price: 800, originalPrice: 1000,
+    img: 'https://images.unsplash.com/photo-1558326567-98ae2405596b?w=400'
+  },
+  {
+    id: 15, category: 'cookies', categoryLabel: 'Cookies',
+    name: 'Brownie Cookies',
+    desc: 'Fudgy chocolate brownie cookies',
+    price: 500, originalPrice: 620,
+    img: 'https://images.unsplash.com/photo-1590080876351-41a8f6947e85?w=400'
+  },
+
+  // ── CROISSANTS ────────────────────────────────────────────
+  {
+    id: 16, category: 'croissants', categoryLabel: 'Croissants',
+    name: 'Plain Croissant',
+    desc: 'Classic buttery croissant',
+    price: 280, originalPrice: 350,
+    img: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400'
+  },
+  {
+    id: 17, category: 'croissants', categoryLabel: 'Croissants',
+    name: 'Almond Croissant',
+    desc: 'Filled with almond cream',
+    price: 380, originalPrice: 480,
+    img: 'https://images.unsplash.com/photo-1509365465985-25d11c17e812?w=400'
+  },
+  {
+    id: 18, category: 'croissants', categoryLabel: 'Croissants',
+    name: 'Chocolate Croissant',
+    desc: 'Pain au chocolat',
+    price: 350, originalPrice: 450,
+    img: 'https://images.unsplash.com/photo-1549903072-7e6e0bedb7fb?w=400'
+  },
+  {
+    id: 19, category: 'croissants', categoryLabel: 'Croissants',
+    name: 'Ham & Cheese Croissant',
+    desc: 'Savory filled croissant',
+    price: 420, originalPrice: 520,
+    img: 'https://images.unsplash.com/photo-1617957743065-abe10fb7bc3a?w=400'
+  },
+  {
+    id: 20, category: 'croissants', categoryLabel: 'Croissants',
+    name: 'Spinach Croissant',
+    desc: 'Vegetarian savory croissant',
+    price: 400, originalPrice: 500,
+    img: 'https://images.unsplash.com/photo-1623334044303-241021148842?w=400'
+  },
+
+  // ── CUPCAKES ──────────────────────────────────────────────
+  {
+    id: 21, category: 'cupcakes', categoryLabel: 'Cupcakes',
+    name: 'Vanilla Cupcake',
+    desc: 'Classic vanilla with buttercream',
+    price: 200, originalPrice: 250,
+    img: 'https://images.unsplash.com/photo-1587668178277-295251f900ce?w=400'
+  },
+  {
+    id: 22, category: 'cupcakes', categoryLabel: 'Cupcakes',
+    name: 'Chocolate Fudge Cupcake',
+    desc: 'Rich chocolate with fudge frosting',
+    price: 220, originalPrice: 280,
+    img: 'https://images.unsplash.com/photo-1614707267537-b85aaf00c4b7?w=400'
+  },
+  {
+    id: 23, category: 'cupcakes', categoryLabel: 'Cupcakes',
+    name: 'Red Velvet Cupcake',
+    desc: 'Mini red velvet with cream cheese',
+    price: 230, originalPrice: 290,
+    img: 'https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?w=400'
+  },
+  {
+    id: 24, category: 'cupcakes', categoryLabel: 'Cupcakes',
+    name: 'Strawberry Cupcake',
+    desc: 'Fresh strawberry frosting',
+    price: 210, originalPrice: 270,
+    img: 'https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=400'
+  },
+  {
+    id: 25, category: 'cupcakes', categoryLabel: 'Cupcakes',
+    name: 'Lemon Cupcake',
+    desc: 'Zesty lemon with lemon curd filling',
+    price: 215, originalPrice: 275,
+    img: 'https://images.unsplash.com/photo-1599785209707-a456fc1337bb?w=400'
+  }
+];
+
+// Category metadata for display
+const CATEGORY_META = {
+  cakes:      { label: 'Cakes',      icon: '🎂', desc: '5 handcrafted celebration cakes, baked to perfection' },
+  pastries:   { label: 'Pastries',   icon: '🥐', desc: 'Flaky, buttery, golden — artisan pastries baked fresh daily' },
+  cookies:    { label: 'Cookies',    icon: '🍪', desc: 'Classic and gourmet cookies, baked in small batches' },
+  croissants: { label: 'Croissants', icon: '🥐', desc: 'Authentic French-style croissants, laminated by hand' },
+  cupcakes:   { label: 'Cupcakes',   icon: '🧁', desc: 'Delightful mini cakes with hand-piped frosting' }
+};
+
+// ============================================================
+// SECTION 2: CART SYSTEM (localStorage)
+// ============================================================
+
+/**
+ * getCart() — read cart from localStorage
+ * Cart structure: [{ id, name, category, price, img, qty }]
+ */
+function getCart() {
+  return JSON.parse(localStorage.getItem('breadhouse_cart') || '[]');
+}
+
+/** saveCart() — persist cart array to localStorage */
+function saveCart(cart) {
+  localStorage.setItem('breadhouse_cart', JSON.stringify(cart));
+  updateCartBadge();
+}
+
+/** updateCartBadge() — update the cart count in the navbar */
+function updateCartBadge() {
+  const cart = getCart();
+  const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+  const badge = document.getElementById('cart-count-badge');
+  if (totalItems > 0) {
+    badge.textContent = totalItems;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+}
+
+/**
+ * addToCart(productId) — add product to cart or increment qty
+ * @param {number} productId - the product's id from PRODUCTS array
+ * @param {HTMLElement} btnEl  - the button element, for visual feedback
+ */
+function addToCart(productId, btnEl) {
+  const product = PRODUCTS.find(p => p.id === productId);
+  if (!product) return;
+
+  const cart = getCart();
+  const existing = cart.find(item => item.id === productId);
+
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    cart.push({
+      id: product.id,
+      name: product.name,
+      category: product.category,
+      categoryLabel: product.categoryLabel,
+      price: product.price,
+      img: product.img,
+      qty: 1
+    });
+  }
+
+  saveCart(cart);
+  showToast(`${product.name} added to cart! 🛒`, 'success');
+
+  // Visual feedback on button
+  if (btnEl) {
+    const originalText = btnEl.textContent;
+    btnEl.textContent = '✔ Added!';
+    btnEl.classList.add('added');
+    btnEl.disabled = true;
+    setTimeout(() => {
+      btnEl.textContent = originalText;
+      btnEl.classList.remove('added');
+      btnEl.disabled = false;
+    }, 1500);
+  }
+}
+
+/** clearCart() — empty the entire cart */
+function clearCart() {
+  if (!confirm('Are you sure you want to clear your cart?')) return;
+  saveCart([]);
+  renderCartPage();
+  showToast('Cart cleared', 'warning');
+}
+
+/** updateQty(productId, delta) — change quantity by +1 or -1 */
+function updateQty(productId, delta) {
+  const cart = getCart();
+  const item = cart.find(i => i.id === productId);
+  if (!item) return;
+
+  item.qty += delta;
+  if (item.qty <= 0) {
+    // Remove item if qty goes to 0
+    const filtered = cart.filter(i => i.id !== productId);
+    saveCart(filtered);
+  } else {
+    saveCart(cart);
+  }
+  renderCartPage();
+}
+
+/** removeFromCart(productId) — remove single product from cart */
+function removeFromCart(productId) {
+  const cart = getCart().filter(i => i.id !== productId);
+  saveCart(cart);
+  renderCartPage();
+}
+
+// ============================================================
+// SECTION 3: ORDER SYSTEM (localStorage)
+// ============================================================
+
+/** getOrders() — read orders from localStorage */
+function getOrders() {
+  return JSON.parse(localStorage.getItem('breadhouse_orders') || '[]');
+}
+
+/** saveOrders() — persist orders to localStorage */
+function saveOrders(orders) {
+  localStorage.setItem('breadhouse_orders', JSON.stringify(orders));
+}
+
+/**
+ * placeOrder() — convert cart into a confirmed order
+ * Saves order to localStorage and shows success modal
+ */
+function placeOrder() {
+  const cart = getCart();
+  if (cart.length === 0) {
+    showToast('Your cart is empty!', 'error');
+    return;
+  }
+
+  // Build order object
+  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const total = subtotal + 100; // PKR 100 delivery
+
+  const order = {
+    orderId: 'BH-' + Date.now(),
+    items: cart.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
+    subtotal,
+    total,
+    date: new Date().toLocaleString('en-PK', {
+      year: 'numeric', month: 'short', day: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    }),
+    status: 'Confirmed',
+    customer: getCurrentUser() ? getCurrentUser().name : 'Guest'
+  };
+
+  // Save and clear cart
+  const orders = getOrders();
+  orders.unshift(order); // newest first
+  saveOrders(orders);
+  saveCart([]);
+
+  // Show success modal
+  document.getElementById('order-success-overlay').classList.remove('hidden');
+}
+
+/** closeOrderSuccess() — hide success modal */
+function closeOrderSuccess() {
+  document.getElementById('order-success-overlay').classList.add('hidden');
+}
+
+// ============================================================
+// SECTION 4: AUTH SYSTEM (localStorage)
+// ============================================================
+
+/** getCurrentUser() — get logged-in user from localStorage */
+function getCurrentUser() {
+  return JSON.parse(localStorage.getItem('breadhouse_current_user') || 'null');
+}
+
+/** getAllUsers() — get all registered users */
+function getAllUsers() {
+  return JSON.parse(localStorage.getItem('breadhouse_users') || '[]');
+}
+
+/** saveUsers(users) — persist users array */
+function saveUsers(users) {
+  localStorage.setItem('breadhouse_users', JSON.stringify(users));
+}
+
+/** generateUserId() — create a simple unique ID */
+function generateUserId() {
+  return 'USR-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+}
+
+/**
+ * handleLogin(event) — process login form submission
+ * Validates input, checks localStorage for matching user
+ */
+function handleLogin(event) {
+  event.preventDefault();
+  clearFormErrors('login');
+
+  const email    = $('#login-email').val().trim().toLowerCase();
+  const password = $('#login-password').val();
+  let valid = true;
+
+  if (!email) {
+    $('#login-email-error').text('Email is required.');
+    valid = false;
+  }
+  if (!password) {
+    $('#login-password-error').text('Password is required.');
+    valid = false;
+  }
+  if (!valid) return;
+
+  const users = getAllUsers();
+  const user = users.find(u => u.email === email && u.password === password);
+
+  if (!user) {
+    $('#login-general-error').text('Invalid email or password. Please try again.');
+    return;
+  }
+
+  // Success — save session
+  localStorage.setItem('breadhouse_current_user', JSON.stringify(user));
+  closeAuthModal();
+  updateNavForLoggedInUser(user);
+  showToast(`Welcome back, ${user.name}! 👋`, 'success');
+}
+
+/**
+ * handleSignup(event) — process signup form submission
+ * Validates input, checks for duplicate email, saves new user
+ */
+function handleSignup(event) {
+  event.preventDefault();
+  clearFormErrors('signup');
+
+  const name     = $('#signup-name').val().trim();
+  const email    = $('#signup-email').val().trim().toLowerCase();
+  const password = $('#signup-password').val();
+  const confirm  = $('#signup-confirm').val();
+  let valid = true;
+
+  if (!name) {
+    $('#signup-name-error').text('Name is required.');
+    valid = false;
+  }
+  if (!email || !/\S+@\S+\.\S+/.test(email)) {
+    $('#signup-email-error').text('Please enter a valid email.');
+    valid = false;
+  }
+  if (!password || password.length < 6) {
+    $('#signup-password-error').text('Password must be at least 6 characters.');
+    valid = false;
+  }
+  if (password !== confirm) {
+    $('#signup-confirm-error').text('Passwords do not match.');
+    valid = false;
+  }
+  if (!valid) return;
+
+  // Check for duplicate email
+  const users = getAllUsers();
+  if (users.find(u => u.email === email)) {
+    $('#signup-general-error').text('An account with this email already exists.');
+    return;
+  }
+
+  // Create new user
+  const newUser = {
+    id:       generateUserId(),
+    name,
+    email,
+    password, // In a real app, passwords would be hashed
+    avatar:   null
+  };
+
+  users.push(newUser);
+  saveUsers(users);
+  localStorage.setItem('breadhouse_current_user', JSON.stringify(newUser));
+  closeAuthModal();
+  updateNavForLoggedInUser(newUser);
+  showToast(`Welcome to Bread House, ${name}! 🎉`, 'success');
+}
+
+/** logout() — clear session and update UI */
+function logout() {
+  localStorage.removeItem('breadhouse_current_user');
+  $('#profile-dropdown').addClass('hidden');
+  $('#profile-img').attr('src', 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png');
+  showToast('You have been logged out.', 'warning');
+}
+
+/** clearFormErrors(prefix) — clear all error messages in a form */
+function clearFormErrors(prefix) {
+  $(`#${prefix}-email-error, #${prefix}-password-error, #${prefix}-name-error, #${prefix}-confirm-error, #${prefix}-general-error`).text('');
+}
+
+/** closeAuthModal() — hide the auth overlay */
+function closeAuthModal() {
+  $('#auth-modal-overlay').addClass('hidden');
+}
+
+/** switchAuthTab(tab) — switch between login and signup forms */
+function switchAuthTab(tab) {
+  if (tab === 'login') {
+    $('#tab-login').addClass('active');
+    $('#tab-signup').removeClass('active');
+    $('#login-form').removeClass('hidden');
+    $('#signup-form').addClass('hidden');
+  } else {
+    $('#tab-signup').addClass('active');
+    $('#tab-login').removeClass('active');
+    $('#signup-form').removeClass('hidden');
+    $('#login-form').addClass('hidden');
+  }
+}
+
+/**
+ * updateNavForLoggedInUser(user) — show profile data in navbar
+ * Updates the avatar image and dropdown content
+ */
+function updateNavForLoggedInUser(user) {
+  const avatar = user.avatar || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+  $('#profile-img').attr('src', avatar);
+  $('#dropdown-avatar').attr('src', avatar);
+  $('#dropdown-name').text(user.name);
+  $('#dropdown-email').text(user.email);
+  $('#user-id-display').text(user.id);
+}
+
+/** toggleProfileDropdown() — show/hide profile menu or auth modal */
+function toggleProfileDropdown() {
+  const user = getCurrentUser();
+  if (!user) {
+    // Not logged in — show auth modal
+    $('#auth-modal-overlay').removeClass('hidden');
+    return;
+  }
+  // Toggle dropdown
+  $('#profile-dropdown').toggleClass('hidden');
+}
+
+/** copyUserId() — copy user ID to clipboard */
+function copyUserId() {
+  const id = document.getElementById('user-id-display').textContent;
+  navigator.clipboard.writeText(id).then(() => {
+    showToast('User ID copied! 📋', 'success');
+  });
+}
+
+/**
+ * handlePhotoUpload(event) — process profile photo file upload
+ * Converts file to base64 and stores in user's localStorage record
+ */
+function handlePhotoUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const base64 = e.target.result;
+    const user = getCurrentUser();
+    if (!user) return;
+
+    // Update user in users list
+    const users = getAllUsers();
+    const userIndex = users.findIndex(u => u.id === user.id);
+    if (userIndex > -1) {
+      users[userIndex].avatar = base64;
+      saveUsers(users);
+    }
+
+    // Update current session
+    user.avatar = base64;
+    localStorage.setItem('breadhouse_current_user', JSON.stringify(user));
+    updateNavForLoggedInUser(user);
+    showToast('Profile photo updated! 📷', 'success');
+  };
+  reader.readAsDataURL(file);
+}
+
+// ============================================================
+// SECTION 5: ADMIN SYSTEM
+// ============================================================
+
+const ADMIN_PASSWORD = 'admin123'; // Hardcoded for demo
+
+/** adminLogin() — validate admin password and show dashboard */
+function adminLogin() {
+  const entered = document.getElementById('admin-password-input').value;
+  if (entered === ADMIN_PASSWORD) {
+    $('#admin-password-error').text('');
+    $('#admin-login-section').addClass('hidden');
+    $('#admin-dashboard-section').removeClass('hidden');
+    renderAdminStats();
+    renderAdminOrders();
+    sessionStorage.setItem('admin_authenticated', 'true');
+  } else {
+    $('#admin-pw-error').text('Incorrect password. Hint: admin123');
+  }
+}
+
+/** adminLogout() — hide dashboard and show login card */
+function adminLogout() {
+  sessionStorage.removeItem('admin_authenticated');
+  $('#admin-dashboard-section').addClass('hidden');
+  $('#admin-login-section').removeClass('hidden');
+  $('#admin-password-input').val('');
+}
+
+/** renderAdminStats() — fill in the stat cards */
+function renderAdminStats() {
+  const orders = getOrders();
+  const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
+  const pendingCount = orders.filter(o => o.status === 'Pending').length;
+
+  $('#stat-total-orders').text(orders.length);
+  $('#stat-total-revenue').text('PKR ' + totalRevenue.toLocaleString());
+  $('#stat-pending-orders').text(pendingCount);
+}
+
+/** renderAdminOrders() — populate orders table, applying status filter */
+function renderAdminOrders() {
+  const filter = document.getElementById('status-filter').value;
+  let orders = getOrders();
+
+  if (filter !== 'all') {
+    orders = orders.filter(o => o.status === filter);
+  }
+
+  if (orders.length === 0) {
+    $('#admin-orders-tbody').html('');
+    $('#admin-no-orders').removeClass('hidden');
+    return;
+  }
+
+  $('#admin-no-orders').addClass('hidden');
+
+  const rows = orders.map(order => {
+    const itemsSummary = order.items.map(i => `${i.name} ×${i.qty}`).join(', ');
+    const badgeClass = order.status === 'Confirmed' ? 'badge-success' :
+                       order.status === 'Pending'   ? 'badge-warning' : 'badge-info';
+    return `
+      <tr>
+        <td><code style="font-size:12px;">${order.orderId}</code></td>
+        <td>${escHtml(order.customer || 'Guest')}</td>
+        <td style="max-width:200px;color:#5C3D22;">${escHtml(itemsSummary)}</td>
+        <td><strong>PKR ${order.total.toLocaleString()}</strong></td>
+        <td style="white-space:nowrap;">${escHtml(order.date)}</td>
+        <td><span class="badge ${badgeClass}">${order.status}</span></td>
+      </tr>
+    `;
+  }).join('');
+
+  $('#admin-orders-tbody').html(rows);
+}
+
+// ============================================================
+// SECTION 6: PAGE NAVIGATION SYSTEM
+// ============================================================
+
+/**
+ * showPage(pageKey) — show the requested page and hide others
+ * pageKey examples: 'home', 'cart', 'products-cakes', 'orders', 'admin', 'search'
+ */
+function showPage(pageKey) {
+  // Hide all pages
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  // Close profile dropdown
+  $('#profile-dropdown').addClass('hidden');
+
+  // Map pageKey to DOM page IDs and handle special cases
+  if (pageKey === 'home') {
+    document.getElementById('page-home').classList.add('active');
+    setActiveNav('home');
+    renderFeaturedProducts();
+
+  } else if (pageKey.startsWith('products-')) {
+    const category = pageKey.replace('products-', ''); // e.g. 'cakes'
+    document.getElementById('page-products').classList.add('active');
+    renderProductListingPage(category);
+    setActiveNav('products');
+    window.scrollTo(0, 0);
+
+  } else if (pageKey === 'cart') {
+    document.getElementById('page-cart').classList.add('active');
+    renderCartPage();
+    setActiveNav('cart');
+    window.scrollTo(0, 0);
+
+  } else if (pageKey === 'orders') {
+    document.getElementById('page-orders').classList.add('active');
+    renderOrdersPage();
+    setActiveNav('orders');
+    window.scrollTo(0, 0);
+
+  } else if (pageKey === 'admin') {
+    document.getElementById('page-admin').classList.add('active');
+    // Check if admin was already authenticated this session
+    if (sessionStorage.getItem('admin_authenticated')) {
+      $('#admin-login-section').addClass('hidden');
+      $('#admin-dashboard-section').removeClass('hidden');
+      renderAdminStats();
+      renderAdminOrders();
+    } else {
+      $('#admin-login-section').removeClass('hidden');
+      $('#admin-dashboard-section').addClass('hidden');
+    }
+    setActiveNav('admin');
+    window.scrollTo(0, 0);
+
+  } else if (pageKey === 'search') {
+    document.getElementById('page-search').classList.add('active');
+    setActiveNav('search');
+    window.scrollTo(0, 0);
+  }
+}
+
+/** setActiveNav(key) — highlight the active nav link */
+function setActiveNav(key) {
+  document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+  const link = document.querySelector(`.nav-links a[data-page="${key}"]`);
+  if (link) link.classList.add('active');
+}
+
+/** scrollToCategories() — smooth scroll to category grid on home page */
+function scrollToCategories() {
+  document.getElementById('categories-section').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ============================================================
+// SECTION 7: RENDERING FUNCTIONS
+// ============================================================
+
+/**
+ * buildProductCardHTML(product) — returns HTML string for one product card
+ * Used by featured, listing, and search pages
+ */
+function buildProductCardHTML(product) {
+  const discount = Math.round((1 - product.price / product.originalPrice) * 100);
+  return `
+    <div class="product-card">
+      <div class="product-img-wrapper">
+        <img src="${product.img}" alt="${escHtml(product.name)}" loading="lazy"
+             onerror="this.src='https://via.placeholder.com/400x300/F5E6D3/8B4513?text=Bread+House'" />
+        <span class="product-discount-tag">-${discount}%</span>
+      </div>
+      <div class="product-body">
+        <div class="product-category-tag">${escHtml(product.categoryLabel)}</div>
+        <div class="product-name">${escHtml(product.name)}</div>
+        <div class="product-desc">${escHtml(product.desc)}</div>
+        <div class="product-footer">
+          <div class="product-price">
+            <span class="price-current">PKR ${product.price.toLocaleString()}</span>
+            <span class="price-original">PKR ${product.originalPrice.toLocaleString()}</span>
+          </div>
+          <button class="add-to-cart-btn" onclick="addToCart(${product.id}, this)">
+            + Add to Cart
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/** renderFeaturedProducts() — pick 6 random products and display on home page */
+function renderFeaturedProducts() {
+  const shuffled = [...PRODUCTS].sort(() => Math.random() - 0.5).slice(0, 6);
+  const html = shuffled.map(buildProductCardHTML).join('');
+  document.getElementById('featured-products-grid').innerHTML = html;
+}
+
+/**
+ * renderProductListingPage(category) — fill product page for a category
+ * Updates title, breadcrumb, and product grid
+ */
+function renderProductListingPage(category) {
+  const meta = CATEGORY_META[category];
+  const products = PRODUCTS.filter(p => p.category === category);
+
+  // Update page title and breadcrumb
+  document.getElementById('product-breadcrumb-label').textContent = meta ? meta.label : category;
+  document.getElementById('products-page-title').textContent =
+    meta ? `${meta.icon} ${meta.label}` : category;
+  document.getElementById('products-page-subtitle').textContent =
+    meta ? meta.desc : `Fresh ${category} baked daily`;
+
+  const html = products.map(buildProductCardHTML).join('');
+  document.getElementById('products-listing-grid').innerHTML = html || '<p style="color:var(--text-muted)">No products found.</p>';
+}
+
+/** renderCartPage() — show cart items or empty state */
+function renderCartPage() {
+  const cart = getCart();
+
+  if (cart.length === 0) {
+    $('#empty-cart').removeClass('hidden');
+    $('#cart-with-items').addClass('hidden');
+    return;
+  }
+
+  $('#empty-cart').addClass('hidden');
+  $('#cart-with-items').removeClass('hidden');
+
+  // Render cart items
+  const itemsHtml = cart.map(item => `
+    <div class="cart-item">
+      <img class="cart-item-img" src="${item.img}" alt="${escHtml(item.name)}"
+           onerror="this.src='https://via.placeholder.com/400x300/F5E6D3/8B4513?text=Bread+House'" />
+      <div class="cart-item-info">
+        <div class="cart-item-name">${escHtml(item.name)}</div>
+        <div class="cart-item-category">${escHtml(item.categoryLabel || item.category)}</div>
+      </div>
+      <div class="cart-item-price">PKR ${item.price.toLocaleString()}</div>
+      <div class="qty-controls">
+        <button class="qty-btn" onclick="updateQty(${item.id}, -1)">−</button>
+        <span class="qty-num">${item.qty}</span>
+        <button class="qty-btn" onclick="updateQty(${item.id}, +1)">+</button>
+      </div>
+      <button class="remove-item-btn" onclick="removeFromCart(${item.id})" title="Remove">✕</button>
+    </div>
+  `).join('');
+
+  document.getElementById('cart-items-list').innerHTML = itemsHtml;
+
+  // Update totals
+  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const total    = subtotal + 100;
+  document.getElementById('cart-subtotal').textContent = 'PKR ' + subtotal.toLocaleString();
+  document.getElementById('cart-total').textContent    = 'PKR ' + total.toLocaleString();
+}
+
+/** renderOrdersPage() — display all past orders from localStorage */
+function renderOrdersPage() {
+  const orders = getOrders();
+  const container = document.getElementById('orders-container');
+
+  if (orders.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state" style="padding:80px 0">
+        <div class="empty-icon">📭</div>
+        <h3>No orders yet</h3>
+        <p>When you place an order, it will appear here.</p>
+        <button class="btn btn-primary btn-lg" onclick="showPage('products-cakes')">🍰 Start Shopping</button>
+      </div>
+    `;
+    return;
+  }
+
+  const html = orders.map(order => {
+    const badgeClass = order.status === 'Confirmed' ? 'badge-success' : 'badge-warning';
+    const itemRows = order.items.map(i => `
+      <div class="order-item-row">
+        <span>${escHtml(i.name)} <span style="color:var(--text-muted)">×${i.qty}</span></span>
+        <span>PKR ${(i.price * i.qty).toLocaleString()}</span>
+      </div>
+    `).join('');
+
+    return `
+      <div class="order-card">
+        <div class="order-card-header">
+          <div>
+            <div class="order-id">${order.orderId}</div>
+            <div class="order-date">📅 ${order.date}</div>
+          </div>
+          <span class="badge ${badgeClass}">${order.status}</span>
+        </div>
+        <div class="order-items-list">${itemRows}</div>
+        <div class="order-card-footer">
+          <span style="font-size:13px;color:var(--text-muted);">
+            Subtotal: PKR ${order.subtotal.toLocaleString()} + PKR 100 delivery
+          </span>
+          <span class="order-total">Total: PKR ${order.total.toLocaleString()}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = html;
+}
+
+// ============================================================
+// SECTION 8: SEARCH SYSTEM
+// ============================================================
+
+/**
+ * performSearch() — read search input and display filtered products
+ * Searches across name, desc, and category
+ */
+function performSearch() {
+  const query = document.getElementById('search-input').value.trim().toLowerCase();
+  if (!query) return;
+
+  showPage('search');
+
+  // Update heading
+  document.getElementById('search-query-display').textContent = query;
+
+  // Filter products
+  const results = PRODUCTS.filter(p =>
+    p.name.toLowerCase().includes(query)        ||
+    p.desc.toLowerCase().includes(query)        ||
+    p.category.toLowerCase().includes(query)    ||
+    p.categoryLabel.toLowerCase().includes(query)
+  );
+
+  // Update result count
+  document.getElementById('search-heading').innerHTML =
+    `<strong>${results.length}</strong> result${results.length !== 1 ? 's' : ''} for <span style="color:var(--brown);">"${escHtml(query)}"</span>`;
+
+  if (results.length === 0) {
+    document.getElementById('search-results-grid').innerHTML = '';
+    document.getElementById('search-no-results').classList.remove('hidden');
+  } else {
+    document.getElementById('search-no-results').classList.add('hidden');
+    document.getElementById('search-results-grid').innerHTML = results.map(buildProductCardHTML).join('');
+  }
+}
+
+// ============================================================
+// SECTION 9: TOAST NOTIFICATION SYSTEM
+// ============================================================
+
+/**
+ * showToast(message, type) — display a brief notification
+ * @param {string} message  - the text to show
+ * @param {string} type     - 'success' | 'warning' | 'error' | '' (default dark)
+ */
+function showToast(message, type = '') {
+  const icons = { success: '✅', warning: '⚠️', error: '❌', '': 'ℹ️' };
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span> ${escHtml(message)}`;
+
+  const container = document.getElementById('toast-container');
+  container.appendChild(toast);
+
+  // Auto remove after 4 seconds
+  setTimeout(() => {
+    toast.style.animation = 'fadeOut 0.3s ease forwards';
+    setTimeout(() => toast.remove(), 300);
+  }, 4000);
+}
+
+// ============================================================
+// SECTION 10: UTILITY FUNCTIONS
+// ============================================================
+
+/**
+ * escHtml(str) — escape HTML special characters to prevent XSS
+ * Always use this before inserting user-controlled strings into HTML
+ */
+function escHtml(str) {
+  if (typeof str !== 'string') return String(str);
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// ============================================================
+// SECTION 11: INITIALISATION
+// ============================================================
+
+/**
+ * Bootstrap function — runs when the DOM is fully loaded
+ * Sets up initial state, checks auth, renders first page
+ */
+$(document).ready(function() {
+
+  // Set footer year
+  document.getElementById('footer-year').textContent = new Date().getFullYear();
+
+  // Restore cart badge from localStorage
+  updateCartBadge();
+
+  // Check if user is already logged in (persisted session)
+  const user = getCurrentUser();
+  if (user) {
+    // User is logged in — close auth modal and set up nav
+    closeAuthModal();
+    updateNavForLoggedInUser(user);
+  }
+  // else: auth modal stays open (shows login form)
+
+  // Render the home page
+  showPage('home');
+
+  // Close profile dropdown when clicking outside of it
+  $(document).on('click', function(event) {
+    const dropdown = document.getElementById('profile-dropdown');
+    const profileBtn = document.getElementById('profile-btn');
+    if (!dropdown.contains(event.target) && !profileBtn.contains(event.target)) {
+      dropdown.classList.add('hidden');
+    }
+  });
+
+  // Close auth modal when clicking outside the modal box
+  $('#auth-modal-overlay').on('click', function(event) {
+    if (event.target === this) {
+      closeAuthModal();
+    }
+  });
+
+  // Close order success modal when clicking outside
+  $('#order-success-overlay').on('click', function(event) {
+    if (event.target === this) {
+      closeOrderSuccess();
+    }
+  });
+
+  // Allow pressing Escape to close modals
+  $(document).on('keydown', function(event) {
+    if (event.key === 'Escape') {
+      closeAuthModal();
+      closeOrderSuccess();
+      $('#profile-dropdown').addClass('hidden');
+    }
+  });
+
+  console.log('🍞 Bread House loaded successfully!');
+  console.log('Cart, orders, and users are stored in localStorage.');
+  console.log('Admin password: admin123');
+});
+</script>
+</body>
+</html>

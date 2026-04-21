@@ -1,0 +1,25 @@
+{
+  "overview": "Bread House is a full-featured bakery e-commerce website with product pages, shopping cart, order placement, and an admin dashboard. Users can browse cakes, pastries, cookies, croissants, and cupcakes, add items to a persistent cart, place Cash on Delivery orders, and view their order history.",
+  "features": [
+    "Product pages for 5 categories (cakes, pastries, cookies, croissants, cupcakes) with 5 items each",
+    "Dynamic shopping cart with item count badge and localStorage persistence",
+    "Add to cart and remove from cart from any product page",
+    "Cash on Delivery checkout with order confirmation",
+    "Order history page — users see their own orders",
+    "Admin dashboard — view all orders and revenue stats",
+    "Search bar with dedicated results page filtering across all products",
+    "Login via Internet Identity with default male avatar",
+    "Email input fix — no auto-capitalize"
+  ],
+  "category": "e-commerce",
+  "tags": [
+    "bakery",
+    "e-commerce",
+    "shopping-cart",
+    "orders",
+    "admin-panel",
+    "search",
+    "student-friendly"
+  ],
+  "last_updated": "2026-04-18T16:30:32.610Z"
+}
